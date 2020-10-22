@@ -1,0 +1,29 @@
+RG=anbossar-sf-cluster
+NAME=anbossarsfc
+VAULTNAME=anbossarsfckv
+ADMIN=myadminuser
+PASSWORD=AsdRtg453%%
+LOCATION=westeurope
+CERTNAME=anbossardsfc01
+CERTPOLICY=$(az keyvault certificate get-default-policy)
+USER_ID=`az ad signed-in-user show --query 'objectId' | tr -d \"`
+ARM=./service-fabric-secure-cluster-5-node-1-nodetype/azuredeploy.json
+PARAMS=@./service-fabric-secure-cluster-5-node-1-nodetype/azuredeploy.parameters.json
+# openssl req -newkey rsa:4096 \
+#             -x509 \
+#             -sha256 \
+#             -days 3650 \
+#             -nodes \
+#             -out mycert.crt \
+#             -keyout mykey.key
+az group create -n $RG -l $LOCATION
+az deployment group create --template-file $ARM -g $RG --parameters \
+    clusterName=$NAME \
+    adminUsername=$ADMIN \
+    adminPassword=$PASSWORD \
+    objectId=$USER_ID
+    keyVaultName=$VAULTNAME
+az keyvault certificate get-default-policy > default_policy.json
+az keyvault certificate create --vault-name $VAULTNAME \
+    --name $CERTNAME \
+    -p `$(az keyvault certificate get-default-policy)`
