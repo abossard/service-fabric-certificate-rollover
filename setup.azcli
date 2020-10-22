@@ -10,12 +10,6 @@ USER_ID=`az ad signed-in-user show --query 'objectId' | tr -d \"`
 ARM=./service-fabric-secure-cluster-5-node-1-nodetype/azuredeploy.json
 PARAMS=@./service-fabric-secure-cluster-5-node-1-nodetype/azuredeploy.parameters.json
 az group create -n $RG -l $LOCATION
-az deployment group create --template-file $ARM -g $RG --parameters \
-    clusterName=$NAME \
-    adminUsername=$ADMIN \
-    adminPassword=$PASSWORD \
-    objectId=$USER_ID
-    keyVaultName=$VAULTNAME
 az keyvault create -g $RG -n $VAULTNAME -l $LOCATION \
     --enable-soft-delete false
 az keyvault certificate get-default-policy > default_policy.json
@@ -23,3 +17,12 @@ az keyvault certificate create --vault-name $VAULTNAME \
     --name $CERTNAME \
     -p @./default_policy.json
 az keyvault certificate list --vault-name $VAULTNAME 
+az deployment group create --template-file $ARM -g $RG --parameters \
+    clusterName=$NAME \
+    adminUsername=$ADMIN \
+    adminPassword=$PASSWORD \
+    objectId=$USER_ID \
+    keyVaultName=$VAULTNAME \
+    certificateThumbprint=SADKASDSAD \
+    sourceVaultResourceId=???????? \
+    certificateUrlValue=???? 
