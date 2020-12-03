@@ -7,11 +7,15 @@ LOCATION=westeurope
 CERTNAME=anbossardsfc01
 CERTPOLICY=$(az keyvault certificate get-default-policy)
 USER_ID=`az ad signed-in-user show --query 'objectId' | tr -d \"`
-ARM=./service-fabric-secure-cluster-5-node-1-nodetype/azuredeploy.json
+ARM=./Cert-Rollover-Sample/5-VM-1-NodeTypes-Secure_Step1.json
+ARM2=./Cert-Rollover-Sample/5-VM-1-NodeTypes-Secure_Step2.json
 PARAMS=@./service-fabric-secure-cluster-5-node-1-nodetype/azuredeploy.parameters.json
 az group create -n $RG -l $LOCATION
 az keyvault create -g $RG -n $VAULTNAME -l $LOCATION \
-    --enable-soft-delete false
+    --enable-soft-delete false \
+    --enabled-for-deployment \
+    --enabled-for-disk-encryption \
+    --enabled-for-template-deployment
 az keyvault certificate get-default-policy > default_policy.json
 az keyvault certificate create --vault-name $VAULTNAME \
     --name $CERTNAME \
@@ -19,10 +23,23 @@ az keyvault certificate create --vault-name $VAULTNAME \
 az keyvault certificate list --vault-name $VAULTNAME 
 az deployment group create --template-file $ARM -g $RG --parameters \
     clusterName=$NAME \
-    adminUsername=$ADMIN \
+    adminUserName=$ADMIN \
     adminPassword=$PASSWORD \
-    objectId=$USER_ID \
-    keyVaultName=$VAULTNAME \
-    certificateThumbprint=SADKASDSAD \
-    sourceVaultResourceId=???????? \
-    certificateUrlValue=???? 
+    clusterLocation=$LOCATION \
+    certificateThumbprint="E31BEA74BC802136AED9BD9EA2EBE244A8097A64" \
+    sourceVaultValue="/subscriptions/8b25cfae-660b-4066-9ce5-0858e9ab3eac/resourceGroups/anbossar-sf-cluster/providers/Microsoft.KeyVault/vaults/anbossarsfckv" \
+    certificateUrlValue="https://anbossarsfckv.vault.azure.net/secrets/anbossardsfc01/4bb8577884e042cba703440ecdc65e6e"
+az keyvault certificate create --vault-name $VAULTNAME \
+    --name "${CERTNAME}2" \
+    -p @./default_policy.json
+az deployment group create --template-file $ARM2 -g $RG --parameters \
+    clusterName=$NAME \
+    adminUserName=$ADMIN \
+    adminPassword=$PASSWORD \
+    clusterLocation=$LOCATION \
+    sourceVaultValue="/subscriptions/8b25cfae-660b-4066-9ce5-0858e9ab3eac/resourceGroups/anbossar-sf-cluster/providers/Microsoft.KeyVault/vaults/anbossarsfckv" \
+    certificateThumbprint="E31BEA74BC802136AED9BD9EA2EBE244A8097A64" \
+    certificateUrlValue="https://anbossarsfckv.vault.azure.net/secrets/anbossardsfc01/4bb8577884e042cba703440ecdc65e6e" \
+    secCertificateThumbprint="F44B0A436E014695DFE185AECBD2942BC707A1CA" \
+    secCertificateUrlValue="https://anbossarsfckv.vault.azure.net/secrets/anbossardsfc012/14787ed69a6c42f9990e34f1264a95cd"
+az keyvault certificate list --vault-name $VAULTNAME 
