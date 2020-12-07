@@ -1,2 +1,5 @@
 key.crt
 default_policy.json
+
+.fake
+.ionide

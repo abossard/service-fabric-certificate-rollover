@@ -150,7 +150,7 @@
     "maxPercentUpgradeDomainDeltaUnhealthyNodes": "100",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "overProvision": "false",
-    "vmssApiVersion": "2016-03-30",
+    "vmssApiVersion": "2017-12-01",
     "lbApiVersion": "2015-06-15",
     "vNetApiVersion": "2015-06-15",
     "storageApiVersion": "2015-06-15",
@@ -413,6 +413,7 @@
       "type": "Microsoft.Compute/virtualMachineScaleSets",
       "name": "[variables('vmNodeType0Name')]",
       "location": "[variables('computeLocation')]",
+      "zones": ["1","2","3"],
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('vmStorageAccountName'))]",
@@ -517,13 +518,9 @@
               "version": "[variables('vmImageVersion')]"
             },
             "osDisk": {
-              "vhdContainers": [
-                "[concat('http://',variables('vmStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'))]"
-              ],
-              "name": "vmssosdisk",
-              "caching": "ReadOnly",
+              "caching": "ReadWrite",
               "createOption": "FromImage"
-            }
+            },
           }
         }
       },
