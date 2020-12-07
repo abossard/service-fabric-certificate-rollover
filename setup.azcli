@@ -33,18 +33,24 @@ az deployment group create --template-file $ARM -g $RG --parameters \
     clusterLocation=$LOCATION \
     certificateThumbprint=$THUMBPRINT1 \
     sourceVaultValue=$KVID \
-    certificateUrlValue="https://anbossarsfckv2.vault.azure.net/secrets/anbossardsfc01/126c2cf925c64a4495bc058b1ac2a5d6"
+    certificateUrlValue=$SID1
 az keyvault certificate create --vault-name $VAULTNAME \
     --name "${CERTNAME}2" \
     -p @./default_policy.json
+
+az keyvault certificate list --vault-name $VAULTNAME
+THUMBPRINT2=`az keyvault certificate list --vault-name $VAULTNAME --query '[1].x509ThumbprintHex' -o tsv`
+SID2=`az keyvault certificate show --name "${CERTNAME}2" --vault-name $VAULTNAME --query 'sid' -o tsv`
+
+
 az deployment group create --template-file $ARM2 -g $RG --parameters \
     clusterName=$NAME \
     adminUserName=$ADMIN \
     adminPassword=$PASSWORD \
     clusterLocation=$LOCATION \
-    sourceVaultValue="/subscriptions/8b25cfae-660b-4066-9ce5-0858e9ab3eac/resourceGroups/anbossar-sf-cluster2/providers/Microsoft.KeyVault/vaults/anbossarsfckv2" \
-    secCertificateThumbprint="C5C62C880E61DA5ECABFC7E1ABAC5C978B91B9C9" \
-    secCertificateUrlValue="https://anbossarsfckv2.vault.azure.net/secrets/anbossardsfc01/126c2cf925c64a4495bc058b1ac2a5d6" \
-    certificateThumbprint="44D293441B92B7F09B9F3D101C9BCCAFEADD0E81" \
-    certificateUrlValue="https://anbossarsfckv2.vault.azure.net/secrets/anbossardsfc012/54eaaee74cd34f8186b1144081bb4ef4"
+    sourceVaultValue=$KVID \
+    secCertificateThumbprint=$THUMBPRINT2 \
+    secCertificateUrlValue=$SID2 \
+    certificateThumbprint=$THUMBPRINT1 \
+    certificateUrlValue=$SID1
 az keyvault certificate list --vault-name $VAULTNAME 
